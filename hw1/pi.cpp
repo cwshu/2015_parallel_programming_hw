@@ -6,10 +6,7 @@
 // MT19937: http://www.cplusplus.com/reference/random/mersenne_twister_engine/mersenne_twister_engine/
 
 #include <pthread.h>
-
-#ifndef NUM_OF_THREAD
-#define NUM_OF_THREAD 4
-#endif
+#include <sys/sysinfo.h>
 
 unsigned long long number_in_circle = 0; 
 
@@ -63,21 +60,25 @@ int main(int argc, char *argv[]){
     }
     unsigned long long number_of_tosses = strtol(argv[1], NULL, 0);
 
-    // pthread
-    pthread_t threads_id[NUM_OF_THREAD];
-    unsigned long long number_of_tosses_per_thread[NUM_OF_THREAD];
+    // pthread preparation
+    int num_of_thread = get_nprocs();
+#ifdef NUM_OF_THREAD
+    num_of_thread = NUM_OF_THREAD;
+#endif
+    pthread_t *threads_id = new pthread_t [num_of_thread];
+    unsigned long long *number_of_tosses_per_thread = new unsigned long long [num_of_thread];
 
     // divide toss number to each thread
-    for( int i = 0; i < NUM_OF_THREAD; i++ ){
-        number_of_tosses_per_thread[i] = number_of_tosses / NUM_OF_THREAD;
-        if( i < (int)(number_of_tosses % NUM_OF_THREAD) ){
+    for( int i = 0; i < num_of_thread; i++ ){
+        number_of_tosses_per_thread[i] = number_of_tosses / num_of_thread;
+        if( i < (int)(number_of_tosses % num_of_thread) ){
             /* 0, 1, 2, 3 => (x, 0, 0/1, 0/1/2)*/
             number_of_tosses_per_thread[i]++;
         }
     }
 
     // create each thread to compute pi
-    for(int i = 1; i < NUM_OF_THREAD; i++){
+    for(int i = 1; i < num_of_thread; i++){
         pthread_create(&threads_id[i], NULL, thread_compute_pi, &number_of_tosses_per_thread[i]);
     }
     // main thread also computes pi
@@ -85,11 +86,14 @@ int main(int argc, char *argv[]){
     number_in_circle += number_in_circle_single_thread;
 
     // output result after each thread finishing computing.
-    for(int i = 1; i < NUM_OF_THREAD; i++){
+    for(int i = 1; i < num_of_thread; i++){
         pthread_join(threads_id[i], NULL);
     }
 
     std::cout << "compute pi = " << 4.0 * number_in_circle / (double)number_of_tosses << std::endl;
     // std::cout << "circle/tosses = " << number_in_circle << "/" << number_of_tosses << std::endl;
+
+    delete [] threads_id;
+    delete [] number_of_tosses_per_thread;
     return 0;
 }
