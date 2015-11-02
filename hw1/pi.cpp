@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <iostream>
+#include <iomanip>
 #include <chrono>
 #include <random>
 // MT19937: http://www.cplusplus.com/reference/random/mersenne_twister_engine/mersenne_twister_engine/
@@ -90,7 +91,8 @@ int main(int argc, char *argv[]){
         pthread_join(threads_id[i], NULL);
     }
 
-    std::cout << "compute pi = " << 4.0 * number_in_circle / (double)number_of_tosses << std::endl;
+    std::cout << std::fixed << std::setprecision(15);
+    std::cout << 4.0 * number_in_circle / (double)number_of_tosses << std::endl;
     // std::cout << "circle/tosses = " << number_in_circle << "/" << number_of_tosses << std::endl;
 
     delete [] threads_id;
