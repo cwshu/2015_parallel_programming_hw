@@ -4,6 +4,14 @@ use pthread and openmp api to compute pi.
 
 Usage
 -----
+build and run pthread version::
+    
+    $ make all
+    $ ./pi <toss_num>
+
+    # or use make run to test
+    $ make run
+
 test 1/2/4/8 thread performance::
 
     # pthread
@@ -15,10 +23,3 @@ test 1/2/4/8 thread performance::
     # all
     $ make test
 
-build and run pthread version::
-    
-    $ make all
-    $ ./pi <toss_num>
-
-    # or use make run to test
-    $ make run
