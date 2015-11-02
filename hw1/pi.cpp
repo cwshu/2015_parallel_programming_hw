@@ -1,4 +1,7 @@
+// build this cpp file by c++11 spec
+// g++ -std=c++11 pi.cpp -lpthread
 #include <cstdio>
+#include <cstdlib>
 #include <cstdint>
 #include <iostream>
 #include <iomanip>
