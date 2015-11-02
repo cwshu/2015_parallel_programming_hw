@@ -20,7 +20,7 @@ unsigned long long compute_pi_by_random(unsigned long long number_of_tosses){
     uint32_t random_generator_min = random_generator.min();
 
     int number_in_circle = 0;
-    for( int toss = 0; toss < number_of_tosses; toss++ ){
+    for( unsigned long long toss = 0; toss < number_of_tosses; toss++ ){
         /* 2 toss for x and y value in square([-1, 1], [-1, 1]),
          * and compute length^2 of (0, 0) -> (x, y) */
         uint32_t random1 = random_generator();
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
     unsigned long long number_of_tosses_per_thread[NUM_OF_THREAD];
     for( int i = 0; i < NUM_OF_THREAD; i++ ){
         number_of_tosses_per_thread[i] = number_of_tosses / NUM_OF_THREAD;
-        if( i < number_of_tosses % NUM_OF_THREAD ){
+        if( i < (int)(number_of_tosses % NUM_OF_THREAD) ){
             /* 0, 1, 2, 3 => (x, 0, 0/1, 0/1/2)*/
             number_of_tosses_per_thread[i]++;
         }

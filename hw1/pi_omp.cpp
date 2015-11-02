@@ -11,7 +11,7 @@
 #define NUM_OF_THREAD 4
 #endif
 
-int compute_pi_by_random(int number_of_tosses){
+unsigned long long compute_pi_by_random(unsigned long long number_of_tosses){
     int number_in_circle = 0;
     #pragma omp parallel num_threads(NUM_OF_THREAD) 
     {
@@ -22,7 +22,7 @@ int compute_pi_by_random(int number_of_tosses){
         uint32_t random_generator_min = random_generator.min();
         
         #pragma omp for reduction(+:number_in_circle)
-        for( int toss = 0; toss < number_of_tosses; toss++ ){
+        for( unsigned long long toss = 0; toss < number_of_tosses; toss++ ){
             /* 2 toss for x and y value in square([-1, 1], [-1, 1]),
              * and compute length^2 of (0, 0) -> (x, y) */
             uint32_t random1 = random_generator();
@@ -46,9 +46,9 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
     // get number_of_tosses from argv
-    int number_of_tosses = strtol(argv[1], NULL, 0);
+    unsigned long long number_of_tosses = strtol(argv[1], NULL, 0);
 
-    int number_in_circle = compute_pi_by_random(number_of_tosses);
+    unsigned long long number_in_circle = compute_pi_by_random(number_of_tosses);
 
     std::cout << "compute pi = " << 4.0 * number_in_circle / (double)number_of_tosses << std::endl;
     // std::cout << "circle/tosses = " << number_in_circle << "/" << number_of_tosses << std::endl;
