@@ -12,8 +12,6 @@
 #include <pthread.h>
 #include <sys/sysinfo.h>
 
-unsigned long long number_in_circle = 0; 
-
 unsigned long long compute_pi_by_random(unsigned long long number_of_tosses){
     /* compute pi by Monte Carlo method
      *   https://www.wikiwand.com/en/Monte_Carlo_method#/Introduction 
@@ -46,13 +44,17 @@ unsigned long long compute_pi_by_random(unsigned long long number_of_tosses){
     return number_in_circle;
 }
 
+struct ThreadComputePiPara{
+    int number_of_tosses;
+    unsigned long long number_in_circle;
+};
+
 void* thread_compute_pi(void* parameters){
     /* compute_pi_by_random wrapper for non-main thread 
      */
 
-    unsigned long long number_of_tosses = *(unsigned long long*)parameters;
-    unsigned long long number_in_circle_single_thread = compute_pi_by_random(number_of_tosses);
-    number_in_circle += number_in_circle_single_thread;
+    ThreadComputePiPara* para = (ThreadComputePiPara*)parameters;
+    para->number_in_circle = compute_pi_by_random(para->number_of_tosses);
     return NULL;
 }
 
@@ -63,6 +65,7 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
     unsigned long long number_of_tosses = strtol(argv[1], NULL, 0);
+    unsigned long long number_in_circle = 0;
 
     // pthread preparation
     int num_of_thread = get_nprocs();
@@ -70,35 +73,38 @@ int main(int argc, char *argv[]){
     num_of_thread = NUM_OF_THREAD;
 #endif
     pthread_t *threads_id = new pthread_t [num_of_thread];
-    unsigned long long *number_of_tosses_per_thread = new unsigned long long [num_of_thread];
+    ThreadComputePiPara *threads_parameters = new ThreadComputePiPara [num_of_thread];
 
     // divide toss number to each thread
     for( int i = 0; i < num_of_thread; i++ ){
-        number_of_tosses_per_thread[i] = number_of_tosses / num_of_thread;
+        threads_parameters[i].number_of_tosses = number_of_tosses / num_of_thread;
         if( i < (int)(number_of_tosses % num_of_thread) ){
             /* 0, 1, 2, 3 => (x, 0, 0/1, 0/1/2)*/
-            number_of_tosses_per_thread[i]++;
+            threads_parameters[i].number_of_tosses++;
         }
     }
 
     // create each thread to compute pi
     for(int i = 1; i < num_of_thread; i++){
-        pthread_create(&threads_id[i], NULL, thread_compute_pi, &number_of_tosses_per_thread[i]);
+        pthread_create(&threads_id[i], NULL, thread_compute_pi, &threads_parameters[i]);
     }
     // main thread also computes pi
-    unsigned long long number_in_circle_single_thread = compute_pi_by_random(number_of_tosses_per_thread[0]);
-    number_in_circle += number_in_circle_single_thread;
+    threads_parameters[0].number_in_circle = compute_pi_by_random(threads_parameters[0].number_of_tosses);
 
-    // output result after each thread finishing computing.
+    // sum the total result after each thread finishing computing.
     for(int i = 1; i < num_of_thread; i++){
         pthread_join(threads_id[i], NULL);
     }
 
+    for(int i = 0; i < num_of_thread; i++)
+        number_in_circle += threads_parameters[i].number_in_circle;
+
+    // print result
     std::cout << std::fixed << std::setprecision(15);
     std::cout << 4.0 * number_in_circle / (double)number_of_tosses << std::endl;
     // std::cout << "circle/tosses = " << number_in_circle << "/" << number_of_tosses << std::endl;
 
     delete [] threads_id;
-    delete [] number_of_tosses_per_thread;
+    delete [] threads_parameters;
     return 0;
 }
