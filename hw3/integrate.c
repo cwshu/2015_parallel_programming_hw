@@ -53,7 +53,9 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     if( mpi_local_rank == 0 ){
         printf("The total area is: %.16f\n", sum);
+        // printf("The total area is: %f\n", (float)sum); // HW requirement
     }
 
+    MPI_Finalize();
     return 0;
 }
